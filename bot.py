@@ -18,7 +18,7 @@ def run_server():
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
-    bot.reply_to(message, "سلام! 🎬\nمن ربات دانلودر یوتیوب هستم.\nلینک یوتیوب بده تا با بالاترین سرعت دانلودش کنم.")
+    bot.reply_to(message, "سلام! 🎬\nمن ربات دانلودر یوتیوب هستم.\nلینک یوتیوب بده تا تست کنم.")
 
 @bot.message_handler(func=lambda message: True)
 def download_video(message):
@@ -27,7 +27,7 @@ def download_video(message):
         bot.reply_to(message, "لطفاً یک لینک معتبر یوتیوب بفرست! ❌")
         return
 
-    wait_msg = bot.reply_to(message, "⏳ در حال دانلود از سرورهای قدرتمند... لطفا صبر کن.")
+    wait_msg = bot.reply_to(message, "⏳ در حال تلاش برای دور زدن سدهای یوتیوب...")
     
     try:
         ydl_opts = {
@@ -35,7 +35,8 @@ def download_video(message):
             'outtmpl': 'video_%(id)s.%(ext)s',
             'quiet': True,
             'max_filesize': 50000000,
-            'extractor_args': {'youtube': ['player_client=android']},
+            # استفاده از چند کلاینت مختلف برای گول زدن یوتیوب
+            'extractor_args': {'youtube': ['player_client=android,web']},
         }
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=True)
@@ -48,9 +49,9 @@ def download_video(message):
         bot.delete_message(message.chat.id, wait_msg.message_id)
 
     except Exception as e:
-        bot.edit_message_text("❌ خطا! حجم ویدیو بیشتر از 50 مگابایت است یا لینک مسدود شده.", chat_id=message.chat.id, message_id=wait_msg.message_id)
+        # حالا اگر یوتیوب ارور بدهد، دلیل دقیقش را در تلگرام می‌بینیم
+        bot.edit_message_text(f"❌ یوتیوب اجازه نداد! دلیل اصلی:\n\n{str(e)}", chat_id=message.chat.id, message_id=wait_msg.message_id)
 
 if __name__ == '__main__':
     threading.Thread(target=run_server).start()
-    print("Bot is Online!")
     bot.infinity_polling()
